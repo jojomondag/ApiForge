@@ -11,6 +11,8 @@ public class StudentAttendance
     public string Name { get; set; } = "";
     public int StatusCode { get; set; }
     public string Status { get; set; } = "Narvarande";
+    /// <summary>Minutes value from length-{studentId} field (sen ankomst, delvis franv, etc.)</summary>
+    public string Minutes { get; set; } = "";
 
     public override string ToString()
         => $"  {Name,-30} {Status}";
@@ -225,12 +227,17 @@ public class AttendanceFetcher
             // Find student name - look for the table row containing this select
             var studentName = FindStudentName(select, studentId, document);
 
+            // Extract minutes from length-{studentId} text input
+            var lengthInput2 = document.QuerySelector($"input[name='length-{studentId}']");
+            var minutes = lengthInput2?.GetAttribute("value") ?? "";
+
             detail.Students.Add(new StudentAttendance
             {
                 StudentId = studentId,
                 Name = studentName,
                 StatusCode = statusCode,
-                Status = StatusLabels.GetValueOrDefault(statusCode, $"Kod {statusCode}")
+                Status = StatusLabels.GetValueOrDefault(statusCode, $"Kod {statusCode}"),
+                Minutes = minutes
             });
         }
 

@@ -402,6 +402,16 @@ while (true)
                             if (ok)
                             {
                                 Console.WriteLine("  Uppdaterat!");
+                                // After first save (insert), subsequent saves must use "update"
+                                for (int fi = 0; fi < detail.FormFields.Count; fi++)
+                                {
+                                    if (detail.FormFields[fi].Key == "action" && detail.FormFields[fi].Value == "insert")
+                                    {
+                                        detail.FormFields[fi] = new("action", "update");
+                                        break;
+                                    }
+                                }
+
                                 // Update local state (re-fetch after POST gives wrong view due to server session state)
                                 foreach (var (sid, ch) in changes)
                                 {
@@ -410,14 +420,20 @@ while (true)
                                     {
                                         student.StatusCode = ch.StatusCode;
                                         student.Status = AttendanceUpdater.GetStatusLabel(ch.StatusCode);
+                                        student.Minutes = ch.LengthMinutes;
                                     }
                                     // Update FormFields so subsequent POSTs use correct values
                                     for (int fi = 0; fi < detail.FormFields.Count; fi++)
                                     {
-                                        if (detail.FormFields[fi].Key == $"status_{sid}")
+                                        var key = detail.FormFields[fi].Key;
+                                        if (key == $"status_{sid}")
                                             detail.FormFields[fi] = new($"status_{sid}", ch.StatusCode.ToString());
-                                        else if (detail.FormFields[fi].Key == $"status2_{sid}")
-                                            detail.FormFields[fi] = new($"status2_{sid}", ch.StatusCode > 0 ? "1" : "0");
+                                        else if (key == $"status2_{sid}")
+                                            detail.FormFields[fi] = new($"status2_{sid}", ch.StatusCode.ToString());
+                                        else if (key == $"length-{sid}")
+                                            detail.FormFields[fi] = new($"length-{sid}", ch.LengthMinutes);
+                                        else if (key == $"length2-{sid}")
+                                            detail.FormFields[fi] = new($"length2-{sid}", ch.LengthMinutes);
                                     }
                                 }
                                 PrintAttendance(detail);
@@ -455,12 +471,13 @@ void PrintAttendance(LessonDetail detail)
 
     if (detail.Students.Count > 0)
     {
-        Console.WriteLine($"  {"#",-4} {"Namn",-30} {"Status"}");
-        Console.WriteLine($"  {new string('-', 54)}");
+        Console.WriteLine($"  {"#",-4} {"Namn",-30} {"Status",-22} {"Min"}");
+        Console.WriteLine($"  {new string('-', 62)}");
         for (int j = 0; j < detail.Students.Count; j++)
         {
             var s = detail.Students[j];
-            Console.WriteLine($"  {j + 1,-4} {s.Name,-30} {s.Status}");
+            var minDisplay = string.IsNullOrEmpty(s.Minutes) ? "" : $"{s.Minutes} min";
+            Console.WriteLine($"  {j + 1,-4} {s.Name,-30} {s.Status,-22} {minDisplay}");
         }
     }
     else
