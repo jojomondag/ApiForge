@@ -28,64 +28,43 @@ public class AttendanceUpdater
     public async Task<bool> UpdateAttendanceAsync(
         LessonDetail detail, Dictionary<int, StatusChange> changes, string schoolSlug)
     {
-        // URL must include query params — the browser POSTs to the current page URL (form has
-        // no explicit action), and Varnish uses the full URL to route to JSP backend vs SPA.
+        // URL must include query params — the browser POSTs to the current page URL
         var url = $"{_baseUrl}/{schoolSlug}/jsp/teacher/right_teacher_lesson_status.jsp?lesson={detail.LessonId}&teachersubstitute=0&week={detail.Week}";
 
-        // Lesson status: default to 2 (Genomförd) if not extracted
-        var lessonStatus = detail.LessonStatusCode > 0 ? detail.LessonStatusCode : 2;
+        // Start from the EXACT form fields extracted from the HTML page.
+        // This includes any CSRF tokens, hidden fields, etc. that the server expects.
+        // We only override the fields we want to change.
+        var formPairs = new List<KeyValuePair<string, string>>();
 
-        var teacherId = detail.TeacherId > 0 ? detail.TeacherId.ToString() : "0";
+        // Build a set of field names we need to override
+        var overrides = new Dictionary<string, string>();
+        overrides["action"] = "update";  // Tell server we're saving
 
-        // Use a list of pairs to preserve field order (matching the browser form exactly)
-        var formPairs = new List<KeyValuePair<string, string>>
+        foreach (var (studentId, change) in changes)
         {
-            new("action", "update"),
-            new("lesson", detail.LessonId.ToString()),
-            new("week", detail.Week.ToString()),
-            new("teachersubstitute", "0"),
-            new("dayreport", "0"),
-            new("old_status", lessonStatus.ToString()),
-            new("current_lesson", detail.LessonId.ToString()),
-            new("status", lessonStatus.ToString()),
-            new("subject", detail.SubjectId.ToString()),
-            new("day", detail.DayIndex.ToString()),
-            new("time", detail.Time),
-            new("length", detail.LengthMinutes.ToString()),
-            new("send_messages", "0"),
-            new("sendmail", "0"),
-            new("recipients", "0"),
-            new("sortorder", "0"),
-        };
+            overrides[$"status_{studentId}"] = change.StatusCode.ToString();
+            // status2: 0 for present, 1 for any type of absence
+            overrides[$"status2_{studentId}"] = change.StatusCode > 0 ? "1" : "0";
+            if (!string.IsNullOrEmpty(change.LengthMinutes))
+                overrides[$"length-{studentId}"] = change.LengthMinutes;
+        }
 
-        // Build per-student fields in the exact order from the browser form
-        foreach (var student in detail.Students)
+        // Replay all form fields, applying overrides where needed
+        foreach (var field in detail.FormFields)
         {
-            var sid = student.StudentId.ToString();
+            var value = overrides.TryGetValue(field.Key, out var ov) ? ov : field.Value;
+            formPairs.Add(new(field.Key, value));
+        }
 
-            // Apply change if present, otherwise keep current status
-            var change = changes.TryGetValue(student.StudentId, out var ch)
-                ? ch
-                : new StatusChange(student.StatusCode);
-
-            var lengthVal = change.LengthMinutes;
-
-            // status2: 0 for present, 1 for any type of absence (matches browser behavior)
-            var status2 = change.StatusCode > 0 ? "1" : "0";
-
-            formPairs.Add(new("status_" + sid, change.StatusCode.ToString()));
-            formPairs.Add(new("subject-" + sid, detail.SubjectId.ToString()));
-            formPairs.Add(new("status2_" + sid, status2));
-            formPairs.Add(new("subject2-" + sid, detail.SubjectId.ToString()));
-            formPairs.Add(new("teacher-" + sid, teacherId));
-            formPairs.Add(new("student", sid));
-            formPairs.Add(new("length-" + sid, lengthVal));
-            formPairs.Add(new("length2-" + sid, ""));
-            formPairs.Add(new("absencetype_unreported_" + sid, "1"));
+        // If FormFields is empty (shouldn't happen), log warning
+        if (formPairs.Count == 0)
+        {
+            Console.WriteLine("  [POST] FEL: Inga formularfalt extraherades fran sidan!");
+            return false;
         }
 
         // Debug: show key fields
-        Console.WriteLine($"  [POST] lesson={detail.LessonId}, status={lessonStatus}, old_status={lessonStatus}");
+        Console.WriteLine($"  [POST] lesson={detail.LessonId}, {formPairs.Count} formularfalt");
         foreach (var (sid, ch) in changes)
         {
             var extra = string.IsNullOrEmpty(ch.LengthMinutes) ? "" : $", length={ch.LengthMinutes} min";

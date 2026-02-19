@@ -30,6 +30,11 @@ public class LessonDetail
     public int Week { get; set; }
     public int TeacherId { get; set; }
     public List<StudentAttendance> Students { get; set; } = new();
+
+    /// <summary>
+    /// All form fields extracted from the HTML, in order. Used as the base for POST requests.
+    /// </summary>
+    public List<KeyValuePair<string, string>> FormFields { get; set; } = new();
 }
 
 public class AttendanceFetcher
@@ -141,6 +146,39 @@ public class AttendanceFetcher
             var teacherVal = teacherInput.GetAttribute("value") ?? "";
             if (int.TryParse(teacherVal, out var tid))
                 detail.TeacherId = tid;
+        }
+
+        // Extract ALL form fields in document order (for POST replay)
+        var form = document.QuerySelector("form");
+        if (form != null)
+        {
+            // Inputs (hidden, text, etc.)
+            foreach (var input in form.QuerySelectorAll("input[name]"))
+            {
+                var n = input.GetAttribute("name") ?? "";
+                var v = input.GetAttribute("value") ?? "";
+                if (!string.IsNullOrEmpty(n))
+                    detail.FormFields.Add(new(n, v));
+            }
+
+            // Selects (status dropdowns, lesson status, etc.) — use selected value
+            foreach (var select in form.QuerySelectorAll("select[name]"))
+            {
+                var n = select.GetAttribute("name") ?? "";
+                var selected = select.QuerySelector("option[selected]");
+                var v = selected?.GetAttribute("value") ?? "0";
+                if (!string.IsNullOrEmpty(n))
+                    detail.FormFields.Add(new(n, v));
+            }
+
+            // Textareas
+            foreach (var ta in form.QuerySelectorAll("textarea[name]"))
+            {
+                var n = ta.GetAttribute("name") ?? "";
+                var v = ta.TextContent ?? "";
+                if (!string.IsNullOrEmpty(n))
+                    detail.FormFields.Add(new(n, v));
+            }
         }
 
         // Find all student status dropdowns: name pattern "status_{studentId}"

@@ -97,8 +97,12 @@ if (existingSession != null)
 // Om sessionen inte ar giltig, logga in
 if (!sessionValid)
 {
+    bool hasDeviceCookie = HeadlessAuthenticator.HasDeviceCookie(existingSession);
     Console.WriteLine("Inloggning kravs. Valj metod:");
-    Console.WriteLine("  1. Headless inloggning (anvandarnamn + losenord + SMS-kod)");
+    if (hasDeviceCookie)
+        Console.WriteLine("  1. Headless inloggning (anvandarnamn + losenord, enhetscookie finns — ingen SMS)");
+    else
+        Console.WriteLine("  1. Headless inloggning (anvandarnamn + losenord + SMS-kod)");
     Console.WriteLine("  2. Webblasare (manuell inloggning + HAR-inspelning)");
     Console.Write("Val (1/2): ");
     var loginChoice = Console.ReadLine()?.Trim();
@@ -149,7 +153,7 @@ if (!sessionValid)
 
             try
             {
-                existingSession = await auth.LoginAsync(username, password);
+                existingSession = await auth.LoginAsync(username, password, existingSession);
                 break; // Success
             }
             catch (InvalidOperationException ex) when (ex.Message.Contains("felaktigt") && attempt < 3)
@@ -166,7 +170,7 @@ if (!sessionValid)
                     Console.Write("Losenord (SYNLIGT): ");
                     password = Console.ReadLine()?.Trim() ?? "";
 
-                    existingSession = await auth.LoginAsync(username, password);
+                    existingSession = await auth.LoginAsync(username, password, existingSession);
                     break;
                 }
             }

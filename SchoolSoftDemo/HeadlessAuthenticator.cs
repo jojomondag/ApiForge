@@ -26,16 +26,30 @@ public class HeadlessAuthenticator
     /// Performs the full SSO login flow and returns a StoredSession with all cookies.
     /// If a saved GrandID device cookie exists, SMS OTP is skipped.
     /// </summary>
-    public async Task<TokenManager.StoredSession> LoginAsync(string username, string password)
+    /// <param name="username">GrandID username</param>
+    /// <param name="password">GrandID password</param>
+    /// <param name="expiredSession">Optional expired session — device cookie will be extracted from it</param>
+    public async Task<TokenManager.StoredSession> LoginAsync(string username, string password, TokenManager.StoredSession? expiredSession = null)
     {
         var cookieContainer = new CookieContainer();
 
         // Load saved GrandID device cookie (skips SMS on subsequent logins)
+        // Priority: 1) grandid_device.json, 2) expired session cookies
         var savedDeviceCookie = await LoadDeviceCookie();
+        if (savedDeviceCookie == null && expiredSession != null)
+        {
+            savedDeviceCookie = ExtractDeviceCookieFromSession(expiredSession);
+            if (savedDeviceCookie != null)
+            {
+                Console.WriteLine("[Auth] Enhetscookie hittad i utgangen session.");
+                // Also save to file so it's available even without an expired session next time
+                await SaveDeviceCookieToFile(savedDeviceCookie.Name, savedDeviceCookie.Value);
+            }
+        }
         if (savedDeviceCookie != null)
         {
             cookieContainer.Add(new Uri("https://login.grandid.com"), savedDeviceCookie);
-            Console.WriteLine("[Auth] Sparad enhetscookie hittad — forsaker hoppa over SMS.");
+            Console.WriteLine($"[Auth] Enhetscookie laddad ({savedDeviceCookie.Name[..8]}...) — forsaker hoppa over SMS.");
         }
 
         using var handler = new HttpClientHandler
@@ -97,68 +111,95 @@ public class HeadlessAuthenticator
         // Check response: does it show 2FA choice or direct SAML form?
         if (responseHtml.Contains("2fa-hidden") || responseHtml.Contains("2fa-otp"))
         {
-            // Device cookie didn't help — warn and delete
-            if (savedDeviceCookie != null)
-            {
-                Console.WriteLine("[Auth] OBS: Enhetscookien fungerade inte (for gammal?). Raderar den.");
-                try { File.Delete(GrandIdCookieFile); } catch { }
-            }
-
-            // Send SMS — must follow redirects to actually trigger the SMS
-            Console.WriteLine("[Auth] Begar SMS-kod...");
+            // Try the 2FA-hidden path first — the device cookie may work server-side
+            // even though the page shows the 2FA form.
+            Console.WriteLine("[Auth] 2FA-sida visas, forsoker med enhetscookie...");
             var smsUrl = $"https://login.grandid.com/?sessionid={sessionId}&2fa-hidden=1";
-            (resp, _) = await FollowRedirectsAsync(client, smsUrl);
+            (resp, var hiddenFinalUrl) = await FollowRedirectsAsync(client, smsUrl);
             var smsHtml = await resp.Content.ReadAsStringAsync();
-            Console.WriteLine($"[Auth] SMS-svar: HTTP {(int)resp.StatusCode}, {smsHtml.Length} tecken");
+            Console.WriteLine($"[Auth] 2FA-svar: HTTP {(int)resp.StatusCode}, {smsHtml.Length} tecken");
+            Console.WriteLine($"[Auth] 2FA slutlig URL: {hiddenFinalUrl}");
 
-            if (!resp.IsSuccessStatusCode)
+            // Dump for debugging
+            var debugHiddenPath = Path.Combine(Path.GetTempPath(), "grandid_2fa_hidden_debug.html");
+            await File.WriteAllTextAsync(debugHiddenPath, smsHtml);
+            Console.WriteLine($"[Auth] 2FA-svar sparat: {debugHiddenPath}");
+
+            // Check if the 2FA request completed auth:
+            // 1. Response contains SAMLResponse form
+            // 2. Final URL is SAML resume endpoint
+            // 3. Response contains JS redirect to SAML/resume
+            // 4. Response contains auto-submit form pointing to SAML endpoint
+            var smsFinalUrl = hiddenFinalUrl;
+            bool deviceCookieWorked =
+                smsHtml.Contains("SAMLResponse") ||
+                smsFinalUrl.Contains("resume.php") ||
+                smsFinalUrl.Contains("saml2.grandid.com") ||
+                Regex.IsMatch(smsHtml, @"(?:window\.location|location\.href|location\.replace)\s*=\s*[""'][^""']*(?:resume|saml|Shibboleth)", RegexOptions.IgnoreCase) ||
+                (smsHtml.Contains("<form") && Regex.IsMatch(smsHtml, @"action=[""'][^""']*(?:resume|saml|Shibboleth)", RegexOptions.IgnoreCase));
+
+            if (deviceCookieWorked)
             {
-                Console.WriteLine("[Auth] VARNING: SMS-begaran misslyckades. Forsaker anda...");
+                // Device cookie worked! Auth completed without SMS.
+                Console.WriteLine("[Auth] Enhetscookien fungerade — SMS hoppades over!");
+                responseHtml = smsHtml;
+                // Don't delete the device cookie — it's still valid
             }
-
-            Console.Write("[Auth] Ange SMS-kod (eller 'r' for att skicka om): ");
-            var otpCode = Console.ReadLine()?.Trim();
-
-            // Retry SMS
-            if (otpCode?.ToLower() == "r")
+            else
             {
-                Console.WriteLine("[Auth] Skickar om SMS...");
-                (resp, _) = await FollowRedirectsAsync(client, smsUrl);
-                Console.WriteLine($"[Auth] Omsandning: HTTP {(int)resp.StatusCode}");
-                Console.Write("[Auth] Ange SMS-kod: ");
-                otpCode = Console.ReadLine()?.Trim();
+                // Device cookie didn't help — delete it and ask for SMS
+                if (savedDeviceCookie != null)
+                {
+                    Console.WriteLine("[Auth] OBS: Enhetscookien fungerade inte. Raderar den.");
+                    try { File.Delete(GrandIdCookieFile); } catch { }
+                }
+
+                Console.Write("[Auth] Ange SMS-kod (eller 'r' for att skicka om): ");
+                var otpCode = Console.ReadLine()?.Trim();
+
+                // Retry SMS
+                if (otpCode?.ToLower() == "r")
+                {
+                    Console.WriteLine("[Auth] Skickar om SMS...");
+                    (resp, _) = await FollowRedirectsAsync(client, smsUrl);
+                    Console.WriteLine($"[Auth] Omsandning: HTTP {(int)resp.StatusCode}");
+                    Console.Write("[Auth] Ange SMS-kod: ");
+                    otpCode = Console.ReadLine()?.Trim();
+                }
+
+                if (string.IsNullOrEmpty(otpCode))
+                    throw new InvalidOperationException("Ingen SMS-kod angiven.");
+
+                var otpContent = new FormUrlEncodedContent(new Dictionary<string, string>
+                {
+                    ["fc"] = "",
+                    ["grandidsession"] = sessionId,
+                    ["otp"] = otpCode
+                });
+                var otpPostUrl = $"https://login.grandid.com/?sessionid={sessionId}";
+                resp = await client.PostAsync(otpPostUrl, otpContent);
+                EnsureSuccess(resp, "verifiera SMS-kod");
+
+                responseHtml = await resp.Content.ReadAsStringAsync();
+                if (responseHtml.Contains("Felaktig") || responseHtml.Contains("Ogiltig"))
+                {
+                    throw new InvalidOperationException("Felaktig SMS-kod.");
+                }
+
+                // Approve browser — saves device cookie for next time (no more SMS!)
+                Console.WriteLine("[Auth] Kopplar enheten (slipper SMS nasta gang)...");
+                var approveUrl = $"https://login.grandid.com/?sessionid={sessionId}&approveBrowser=true";
+                (resp, _) = await FollowRedirectsAsync(client, approveUrl);
+                Console.WriteLine($"[Auth] approveBrowser svar: HTTP {(int)resp.StatusCode}");
             }
-
-            if (string.IsNullOrEmpty(otpCode))
-                throw new InvalidOperationException("Ingen SMS-kod angiven.");
-
-            var otpContent = new FormUrlEncodedContent(new Dictionary<string, string>
-            {
-                ["fc"] = "",
-                ["grandidsession"] = sessionId,
-                ["otp"] = otpCode
-            });
-            var otpPostUrl = $"https://login.grandid.com/?sessionid={sessionId}";
-            resp = await client.PostAsync(otpPostUrl, otpContent);
-            EnsureSuccess(resp, "verifiera SMS-kod");
-
-            responseHtml = await resp.Content.ReadAsStringAsync();
-            if (responseHtml.Contains("Felaktig") || responseHtml.Contains("Ogiltig"))
-            {
-                throw new InvalidOperationException("Felaktig SMS-kod.");
-            }
-
-            // Approve browser — saves device cookie for next time (no more SMS!)
-            Console.WriteLine("[Auth] Kopplar enheten (slipper SMS nasta gang)...");
-            var approveUrl = $"https://login.grandid.com/?sessionid={sessionId}&approveBrowser=true";
-            resp = await client.GetAsync(approveUrl);
         }
         else if (responseHtml.Contains("Koppla webbl"))
         {
             // OTP was skipped, just the browser approval page
             Console.WriteLine("[Auth] SMS hoppades over! Kopplar enheten...");
             var approveUrl = $"https://login.grandid.com/?sessionid={sessionId}&approveBrowser=true";
-            resp = await client.GetAsync(approveUrl);
+            (resp, _) = await FollowRedirectsAsync(client, approveUrl);
+            Console.WriteLine($"[Auth] approveBrowser svar: HTTP {(int)resp.StatusCode}");
         }
 
         // Save the GrandID device cookie for future logins
@@ -313,26 +354,73 @@ public class HeadlessAuthenticator
 
     // --- Device cookie persistence ---
 
+    /// <summary>
+    /// Extracts the GrandID device cookie from a stored session (e.g. expired browser session).
+    /// </summary>
+    private static Cookie? ExtractDeviceCookieFromSession(TokenManager.StoredSession session)
+    {
+        var dc = session.Cookies.FirstOrDefault(c =>
+            c.Domain.Contains("login.grandid.com") &&
+            c.Name.Length == 32 &&
+            c.Value.Contains("Hiddenfactor"));
+
+        if (dc == null) return null;
+
+        return new Cookie(dc.Name, dc.Value, "/", "login.grandid.com")
+        {
+            Secure = true,
+            Expires = DateTime.Now.AddYears(10)
+        };
+    }
+
+    /// <summary>
+    /// Checks if a stored session contains a GrandID device cookie.
+    /// </summary>
+    public static bool HasDeviceCookie(TokenManager.StoredSession? session)
+    {
+        if (session == null) return false;
+
+        // Check session cookies
+        if (session.Cookies.Any(c =>
+            c.Domain.Contains("login.grandid.com") &&
+            c.Name.Length == 32 &&
+            c.Value.Contains("Hiddenfactor")))
+            return true;
+
+        // Check grandid_device.json
+        return File.Exists(GrandIdCookieFile);
+    }
+
+    private static async Task SaveDeviceCookieToFile(string name, string value)
+    {
+        var data = new DeviceCookieData
+        {
+            Name = name,
+            Value = value,
+            SavedAt = DateTime.UtcNow
+        };
+        var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
+        await File.WriteAllTextAsync(GrandIdCookieFile, json);
+        Console.WriteLine($"[Auth] Enhetscookie sparad till {Path.GetFullPath(GrandIdCookieFile)}");
+    }
+
     private static async Task SaveDeviceCookie(CookieContainer container)
     {
         var cookies = container.GetCookies(new Uri("https://login.grandid.com"));
+        Console.WriteLine($"[Auth] Soker enhetscookie bland {cookies.Count} cookies for login.grandid.com:");
         foreach (Cookie cookie in cookies)
         {
+            Console.WriteLine($"[Auth]   {cookie.Name} ({cookie.Name.Length} tecken) = {cookie.Value[..Math.Min(30, cookie.Value.Length)]}...");
+
             // The hidden factor cookie has a hash-like name and expires far in the future
             if (cookie.Name.Length == 32 && cookie.Value.Contains("Hiddenfactor"))
             {
-                var data = new DeviceCookieData
-                {
-                    Name = cookie.Name,
-                    Value = cookie.Value,
-                    SavedAt = DateTime.UtcNow
-                };
-                var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
-                await File.WriteAllTextAsync(GrandIdCookieFile, json);
-                Console.WriteLine("[Auth] Enhetscookie sparad — SMS kravs inte nasta gang!");
+                await SaveDeviceCookieToFile(cookie.Name, cookie.Value);
+                Console.WriteLine("[Auth] SMS kravs inte nasta gang!");
                 return;
             }
         }
+        Console.WriteLine("[Auth] VARNING: Ingen enhetscookie hittades! SMS kravs fortfarande nasta gang.");
     }
 
     private static async Task<Cookie?> LoadDeviceCookie()
