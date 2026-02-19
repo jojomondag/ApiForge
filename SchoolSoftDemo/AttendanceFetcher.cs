@@ -65,7 +65,17 @@ public class AttendanceFetcher
         var url = $"{_baseUrl}/{schoolSlug}/jsp/teacher/right_teacher_lesson_status.jsp?lesson={lessonId}&teachersubstitute=0&week={week}";
         var bytes = await _client.GetByteArrayAsync(url);
         var html = ScheduleFetcher.DecodeHtml(bytes);
-        return ParseLessonHtml(html, lessonId, week);
+
+        // Debug: save fetched HTML for troubleshooting
+        var debugPath = Path.Combine(Path.GetTempPath(), "schoolsoft_lesson_debug.html");
+        await File.WriteAllTextAsync(debugPath, html);
+
+        var detail = ParseLessonHtml(html, lessonId, week);
+
+        if (detail.Students.Count == 0)
+            Console.WriteLine($"  [DEBUG] 0 elever parsade fran {html.Length} tecken — sparad: {debugPath}");
+
+        return detail;
     }
 
     /// <summary>
@@ -149,12 +159,24 @@ public class AttendanceFetcher
         }
 
         // Extract ALL form fields in document order (for POST replay)
-        var form = document.QuerySelector("form");
+        // The page has two forms: "weekselect" (week picker) and "status" (attendance).
+        // We need the "status" form which contains all student fields.
+        var form = document.QuerySelector("form[name='status']")
+                   ?? document.QuerySelector("form");
         if (form != null)
         {
             // Inputs (hidden, text, etc.)
+            // Skip: submit buttons (only the clicked one is sent by browsers),
+            //        disabled inputs (browsers don't send them),
+            //        unchecked checkboxes (browsers only send checked ones),
+            //        unchecked radio buttons (browsers only send the selected one).
             foreach (var input in form.QuerySelectorAll("input[name]"))
             {
+                var type = (input.GetAttribute("type") ?? "").ToLower();
+                if (type == "submit" || input.HasAttribute("disabled"))
+                    continue;
+                if ((type == "checkbox" || type == "radio") && !input.HasAttribute("checked"))
+                    continue;
                 var n = input.GetAttribute("name") ?? "";
                 var v = input.GetAttribute("value") ?? "";
                 if (!string.IsNullOrEmpty(n))

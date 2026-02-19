@@ -28,23 +28,22 @@ public class AttendanceUpdater
     public async Task<bool> UpdateAttendanceAsync(
         LessonDetail detail, Dictionary<int, StatusChange> changes, string schoolSlug)
     {
-        // URL must include query params — the browser POSTs to the current page URL
-        var url = $"{_baseUrl}/{schoolSlug}/jsp/teacher/right_teacher_lesson_status.jsp?lesson={detail.LessonId}&teachersubstitute=0&week={detail.Week}";
+        // Browser POSTs to bare form action URL (no query params — lesson/week are in form data)
+        var url = $"{_baseUrl}/{schoolSlug}/jsp/teacher/right_teacher_lesson_status.jsp";
 
         // Start from the EXACT form fields extracted from the HTML page.
-        // This includes any CSRF tokens, hidden fields, etc. that the server expects.
-        // We only override the fields we want to change.
+        // This includes the action field (insert/update), CSRF tokens, hidden fields, etc.
+        // We only override the student status fields we want to change.
         var formPairs = new List<KeyValuePair<string, string>>();
 
-        // Build a set of field names we need to override
+        // Build overrides for only the student fields we're changing
+        // NOTE: Don't override "action" — the form already has the correct value
+        // (insert for first report, update for edits)
         var overrides = new Dictionary<string, string>();
-        overrides["action"] = "update";  // Tell server we're saving
 
         foreach (var (studentId, change) in changes)
         {
             overrides[$"status_{studentId}"] = change.StatusCode.ToString();
-            // status2: 0 for present, 1 for any type of absence
-            overrides[$"status2_{studentId}"] = change.StatusCode > 0 ? "1" : "0";
             if (!string.IsNullOrEmpty(change.LengthMinutes))
                 overrides[$"length-{studentId}"] = change.LengthMinutes;
         }
@@ -56,6 +55,10 @@ public class AttendanceUpdater
             formPairs.Add(new(field.Key, value));
         }
 
+        // Add the submit button — the server checks this to confirm the save
+        // (submit buttons are excluded from FormFields since browsers only send the clicked one)
+        formPairs.Add(new("button", "Spara"));
+
         // If FormFields is empty (shouldn't happen), log warning
         if (formPairs.Count == 0)
         {
@@ -64,7 +67,8 @@ public class AttendanceUpdater
         }
 
         // Debug: show key fields
-        Console.WriteLine($"  [POST] lesson={detail.LessonId}, {formPairs.Count} formularfalt");
+        var actionVal = formPairs.FirstOrDefault(f => f.Key == "action").Value ?? "?";
+        Console.WriteLine($"  [POST] lesson={detail.LessonId}, action={actionVal}, {formPairs.Count} formularfalt");
         foreach (var (sid, ch) in changes)
         {
             var extra = string.IsNullOrEmpty(ch.LengthMinutes) ? "" : $", length={ch.LengthMinutes} min";
@@ -73,8 +77,10 @@ public class AttendanceUpdater
 
         var content = new FormUrlEncodedContent(formPairs);
         var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
+        // Match browser headers
         request.Headers.Referrer = new Uri(
             $"{_baseUrl}/{schoolSlug}/jsp/teacher/right_teacher_lesson_status.jsp?lesson={detail.LessonId}&teachersubstitute=0&week={detail.Week}");
+        request.Headers.Add("Origin", _baseUrl);
         var resp = await _client.SendAsync(request);
 
         // Check response
@@ -114,7 +120,12 @@ public class AttendanceUpdater
             return false;
         }
 
-        Console.WriteLine($"  [POST] OK — svar sparat: {debugPath}");
+        if (respHtml.Contains("har nu sparats"))
+            Console.WriteLine($"  [POST] OK — servern bekraftade: 'Din rapportering har nu sparats'");
+        else
+            Console.WriteLine($"  [POST] VARNING — hittade inte bekraftelsemeddelandet i svaret");
+
+        Console.WriteLine($"  [POST] Debug sparat: {debugPath}");
         return true;
     }
 

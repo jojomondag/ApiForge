@@ -402,8 +402,24 @@ while (true)
                             if (ok)
                             {
                                 Console.WriteLine("  Uppdaterat!");
-                                // Refresh
-                                detail = await attendanceFetcher.GetLessonAttendanceAsync(selectedLesson.LessonId, week, schoolSlug);
+                                // Update local state (re-fetch after POST gives wrong view due to server session state)
+                                foreach (var (sid, ch) in changes)
+                                {
+                                    var student = detail.Students.FirstOrDefault(s => s.StudentId == sid);
+                                    if (student != null)
+                                    {
+                                        student.StatusCode = ch.StatusCode;
+                                        student.Status = AttendanceUpdater.GetStatusLabel(ch.StatusCode);
+                                    }
+                                    // Update FormFields so subsequent POSTs use correct values
+                                    for (int fi = 0; fi < detail.FormFields.Count; fi++)
+                                    {
+                                        if (detail.FormFields[fi].Key == $"status_{sid}")
+                                            detail.FormFields[fi] = new($"status_{sid}", ch.StatusCode.ToString());
+                                        else if (detail.FormFields[fi].Key == $"status2_{sid}")
+                                            detail.FormFields[fi] = new($"status2_{sid}", ch.StatusCode > 0 ? "1" : "0");
+                                    }
+                                }
                                 PrintAttendance(detail);
                             }
                             else
