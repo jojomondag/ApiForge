@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <Compile Remove="SchoolSoftDemo\**" />
+    <Compile Remove="StudyBeeDemo\**" />
   </ItemGroup>
 
   <ItemGroup>

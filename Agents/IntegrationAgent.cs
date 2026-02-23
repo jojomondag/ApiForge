@@ -111,20 +111,84 @@ namespace ApiForge.Agents
                 ""required"": [""url""]
             }");
 
-            var prompt = $@"
-{FormatHarUrls()}
-Task:
-Given the above list of URLs, request types, and response formats, find the URL responsible for the action below:
-{_prompt}
+            Console.WriteLine($"[EndUrlIdentify] {HarUrls.Count} URL:er efter filtrering");
+            foreach (var (m, u, _, _) in HarUrls)
+                Console.WriteLine($"  {m} {u}");
+
+            // Chunk the URL list so each LLM call stays within context limits
+            const int maxUrlsPerChunk = 15;
+            var chunks = new List<List<(string Method, string Url, string ResponseFormat, string ResponsePreview)>>();
+            for (int i = 0; i < HarUrls.Count; i += maxUrlsPerChunk)
+                chunks.Add(HarUrls.Skip(i).Take(maxUrlsPerChunk).ToList());
+
+            if (chunks.Count == 0)
+            {
+                throw new InvalidOperationException(
+                    "Inga API-URL:er hittades i HAR-filen efter filtrering.\n" +
+                    "Tips: Spela in fler åtgärder i webbläsaren (navigera, klicka, etc.).");
+            }
+
+            string? bestUrl = null;
+
+            for (int ci = 0; ci < chunks.Count; ci++)
+            {
+                var chunk = chunks[ci];
+                var formatted = FormatHarUrlsReadable(chunk);
+
+                var chunkPrompt = $@"API endpoints captured from a web application:
+
+{formatted}
+
+Task: Which endpoint is MOST LIKELY responsible for this action: ""{_prompt}""
+
+Pick the BEST matching URL. Only respond with url=""NONE"" if absolutely none of the endpoints could be related.
+Return the full URL exactly as shown above (including any #op= suffix).
 ";
 
-            var result = await _llmService.InvokeWithFunctionAsync(
-                prompt,
-                "identify_end_url",
-                "Identify the URL responsible for a specific action",
-                parametersSchema);
+                Console.WriteLine($"[EndUrlIdentify] Chunk {ci + 1}/{chunks.Count} ({chunk.Count} URL:er)");
 
-            var endUrl = result.GetProperty("url").GetString() ?? string.Empty;
+                var result = await _llmService.InvokeWithFunctionAsync(
+                    chunkPrompt,
+                    "identify_end_url",
+                    "Identify the URL responsible for a specific action",
+                    parametersSchema);
+
+                var candidate = result.GetProperty("url").GetString()?.Trim() ?? string.Empty;
+                Console.WriteLine($"[EndUrlIdentify] LLM svarade: \"{candidate}\"");
+
+                if (!string.IsNullOrEmpty(candidate) &&
+                    !candidate.Equals("NONE", StringComparison.OrdinalIgnoreCase) &&
+                    candidate.Length > 5)
+                {
+                    bestUrl = candidate;
+                    break; // Found a match, no need to check more chunks
+                }
+            }
+
+            var endUrl = bestUrl ?? string.Empty;
+
+            // Fuzzy match against UrlToResReqDict
+            if (!string.IsNullOrEmpty(endUrl) && !UrlToResReqDict.ContainsKey(endUrl))
+            {
+                var match = UrlToResReqDict.Keys.FirstOrDefault(k =>
+                    k.Contains(endUrl, StringComparison.OrdinalIgnoreCase) ||
+                    endUrl.Contains(k, StringComparison.OrdinalIgnoreCase));
+                if (match != null)
+                {
+                    Console.WriteLine($"[EndUrlIdentify] Fuzzy-matchade: {endUrl} -> {match}");
+                    endUrl = match;
+                }
+            }
+
+            if (string.IsNullOrEmpty(endUrl) || !UrlToResReqDict.ContainsKey(endUrl))
+            {
+                var availableUrls = string.Join("\n  ",
+                    HarUrls.Select(h => $"{h.Method} {h.Url}"));
+                throw new InvalidOperationException(
+                    $"LLM returnerade en ogiltig URL: \"{endUrl}\"\n" +
+                    $"Tillgängliga URLer (efter filtrering):\n  {availableUrls}");
+            }
+
             state.ActionUrl = endUrl;
             return state;
         }
@@ -440,7 +504,16 @@ Important:
 
                     if (requestsWithSearchString.Count > 1)
                     {
-                        simplestRequest = await GetSimplestRequest(requestsWithSearchString);
+                        try
+                        {
+                            simplestRequest = await GetSimplestRequest(requestsWithSearchString);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[FindCurl] LLM-fel vid GetSimplestRequest: {ex.Message}");
+                            // Fall back to first match instead of crashing
+                            simplestRequest = requestsWithSearchString[0];
+                        }
                     }
                     else if (requestsWithSearchString.Count == 1)
                     {
@@ -611,12 +684,34 @@ The index should be 0-based (i.e., the first item has index 0).
         /// </summary>
         private string FormatHarUrls()
         {
+            return FormatHarUrlsFromList(HarUrls);
+        }
+
+        private static string FormatHarUrlsFromList(
+            List<(string Method, string Url, string ResponseFormat, string ResponsePreview)> urls)
+        {
             var entries = new List<string>();
-            foreach (var (method, url, responseFormat, responsePreview) in HarUrls)
+            foreach (var (method, url, responseFormat, responsePreview) in urls)
             {
                 entries.Add($"('{method}', '{url}', '{responseFormat}', '{responsePreview}')");
             }
             return "[" + string.Join(", ", entries) + "]";
+        }
+
+        /// <summary>
+        /// Formats URLs in a clear numbered list that's easier for local LLMs to parse.
+        /// </summary>
+        private static string FormatHarUrlsReadable(
+            List<(string Method, string Url, string ResponseFormat, string ResponsePreview)> urls)
+        {
+            var lines = new List<string>();
+            for (int i = 0; i < urls.Count; i++)
+            {
+                var (method, url, responseFormat, responsePreview) = urls[i];
+                lines.Add($"{i + 1}. {method} {url}");
+                lines.Add($"   Response: {responseFormat} | Preview: {responsePreview}");
+            }
+            return string.Join("\n", lines);
         }
     }
 }

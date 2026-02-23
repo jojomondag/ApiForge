@@ -75,14 +75,28 @@ public class ApiForgeClient
     /// <param name="cookieFilePath">Path to save the cookies JSON file (default: cookies.json).</param>
     /// <param name="startUrl">Optional URL to navigate to when the browser opens.</param>
     /// <param name="cookies">Optional Playwright cookies to inject into the browser context.</param>
+    /// <param name="userProfilePath">
+    /// Optional user data directory for persistent context.
+    /// Must NOT be Chrome's default User Data dir (use a copy).
+    /// </param>
+    /// <param name="browserExecutablePath">
+    /// Optional path to the browser executable (e.g. Brave, Chrome, Edge).
+    /// </param>
+    /// <param name="profileDirectory">
+    /// Optional Chrome profile directory name (e.g. "Profile 1", "Default").
+    /// </param>
     public async Task RecordHarAsync(
         string harFilePath = "network_requests.har",
         string cookieFilePath = "cookies.json",
         string? startUrl = null,
-        IEnumerable<Microsoft.Playwright.Cookie>? cookies = null)
+        IEnumerable<Microsoft.Playwright.Cookie>? cookies = null,
+        string? userProfilePath = null,
+        string? browserExecutablePath = null,
+        string? profileDirectory = null)
     {
         var recorder = new HarRecorder();
-        await recorder.RecordAsync(harFilePath, cookieFilePath, startUrl: startUrl, cookies: cookies);
+        await recorder.RecordAsync(harFilePath, cookieFilePath, startUrl: startUrl, cookies: cookies,
+            userProfilePath: userProfilePath, browserExecutablePath: browserExecutablePath, profileDirectory: profileDirectory);
     }
 }
 

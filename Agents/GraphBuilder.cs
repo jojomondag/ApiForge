@@ -69,18 +69,29 @@ public class GraphBuilder
         // Track total node executions.
         // The 2 initial steps already consumed 2 of the budget.
         int totalNodeExecutions = 2;
+        bool pipelineAborted = false;
         while (totalNodeExecutions + 3 <= maxSteps)
         {
             int loopIteration = (totalNodeExecutions - 2) / 3 + 1;
 
-            Console.WriteLine($"[GraphBuilder] Iteration {loopIteration} (step {totalNodeExecutions + 1}/{maxSteps}) - Running DynamicPartIdentifyingAgent...");
-            state = await agent.DynamicPartIdentifyingAgentAsync(state);
+            try
+            {
+                Console.WriteLine($"[GraphBuilder] Iteration {loopIteration} (step {totalNodeExecutions + 1}/{maxSteps}) - Running DynamicPartIdentifyingAgent...");
+                state = await agent.DynamicPartIdentifyingAgentAsync(state);
 
-            Console.WriteLine($"[GraphBuilder] Iteration {loopIteration} (step {totalNodeExecutions + 2}/{maxSteps}) - Running InputVariablesIdentifyingAgent...");
-            state = await agent.InputVariablesIdentifyingAgentAsync(state);
+                Console.WriteLine($"[GraphBuilder] Iteration {loopIteration} (step {totalNodeExecutions + 2}/{maxSteps}) - Running InputVariablesIdentifyingAgent...");
+                state = await agent.InputVariablesIdentifyingAgentAsync(state);
 
-            Console.WriteLine($"[GraphBuilder] Iteration {loopIteration} (step {totalNodeExecutions + 3}/{maxSteps}) - Running FindCurlFromContent...");
-            state = await agent.FindCurlFromContentAsync(state);
+                Console.WriteLine($"[GraphBuilder] Iteration {loopIteration} (step {totalNodeExecutions + 3}/{maxSteps}) - Running FindCurlFromContent...");
+                state = await agent.FindCurlFromContentAsync(state);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[GraphBuilder] LLM-fel i iteration {loopIteration}: {ex.Message}");
+                Console.WriteLine("[GraphBuilder] Visar delresultat...");
+                pipelineAborted = true;
+                break;
+            }
 
             totalNodeExecutions += 3;
 
@@ -103,6 +114,14 @@ public class GraphBuilder
                     DagPrinter.PrintDag(agent.DagManager, agent.GlobalMasterNodeId);
                 }
             }
+        }
+
+        // Show partial results if pipeline was aborted
+        if (pipelineAborted && agent.GlobalMasterNodeId != null)
+        {
+            Console.WriteLine();
+            Console.WriteLine("=== Delresultat (pipeline avbröts) ===");
+            DagPrinter.PrintDag(agent.DagManager, agent.GlobalMasterNodeId);
         }
 
         return (agent.DagManager, agent);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using ApiForge.Models;
 
 namespace ApiForge.Utilities
@@ -33,9 +34,19 @@ namespace ApiForge.Utilities
         private static readonly string[] ExcludedKeywords =
         {
             "google",
+            "gstatic",
+            "googleapis",
+            "googleusercontent",
             "taboola",
             "datadog",
-            "sentry"
+            "sentry",
+            "facebook",
+            "fbcdn",
+            "doubleclick",
+            "googlesyndication",
+            "googletagmanager",
+            "cloudflare",
+            "recaptcha"
         };
 
         /// <summary>
@@ -75,10 +86,11 @@ namespace ApiForge.Utilities
             StringComparer.OrdinalIgnoreCase)
         {
             ".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".ico",
-            ".css",
+            ".css", ".js", ".mjs",
             ".woff", ".woff2", ".ttf", ".otf", ".eot",
             ".mp3", ".mp4", ".wav", ".avi", ".mov", ".flv", ".wmv", ".webm",
-            ".rar", ".7z", ".tar", ".gz", ".exe", ".dmg"
+            ".rar", ".7z", ".tar", ".gz", ".exe", ".dmg",
+            ".map"
         };
 
         /// <summary>
@@ -240,17 +252,66 @@ namespace ApiForge.Utilities
             {
                 var request = kvp.Key;
                 string baseUrl = request.Url;
-                urlToReqRes[baseUrl] = (request, kvp.Value);
+
+                // For GraphQL endpoints, include operation name in the key
+                string mapKey = baseUrl;
+                string opName = ExtractOperationNameFromBody(request.Body);
+                if (!string.IsNullOrEmpty(opName) &&
+                    baseUrl.Contains("/graphql", StringComparison.OrdinalIgnoreCase))
+                {
+                    mapKey = $"{baseUrl}#op={opName}";
+                }
+
+                urlToReqRes[mapKey] = (request, kvp.Value);
 
                 // Also store with query params so LLM-returned URLs (which include query strings) match
                 if (request.QueryParams != null && request.QueryParams.Count > 0)
                 {
                     var qs = string.Join("&", request.QueryParams.Select(p => $"{p.Key}={p.Value}"));
-                    urlToReqRes[$"{baseUrl}?{qs}"] = (request, kvp.Value);
+                    urlToReqRes[$"{mapKey}?{qs}"] = (request, kvp.Value);
                 }
             }
 
             return urlToReqRes;
+        }
+
+        /// <summary>
+        /// Extracts the GraphQL operation name from an HttpRequestModel body (JsonElement or string).
+        /// Tries: 1) explicit "operationName", 2) root field from the "query" string.
+        /// </summary>
+        private static string ExtractOperationNameFromBody(object? body)
+        {
+            try
+            {
+                if (body is JsonElement je && je.ValueKind == JsonValueKind.Object)
+                {
+                    if (je.TryGetProperty("operationName", out var opProp))
+                    {
+                        var opName = opProp.GetString();
+                        if (!string.IsNullOrEmpty(opName))
+                            return opName;
+                    }
+                    if (je.TryGetProperty("query", out var qProp))
+                    {
+                        var q = qProp.GetString() ?? "";
+                        return ExtractGraphqlRootField(q);
+                    }
+                }
+                if (body is string bodyStr)
+                {
+                    using var doc = JsonDocument.Parse(bodyStr);
+                    if (doc.RootElement.TryGetProperty("operationName", out var op))
+                    {
+                        var opName = op.GetString();
+                        if (!string.IsNullOrEmpty(opName))
+                            return opName;
+                    }
+                    if (doc.RootElement.TryGetProperty("query", out var q2))
+                        return ExtractGraphqlRootField(q2.GetString() ?? "");
+                }
+            }
+            catch { }
+            return "";
         }
 
         /// <summary>
@@ -266,6 +327,7 @@ namespace ApiForge.Utilities
             GetHarUrls(string harFilePath)
         {
             var urlsWithDetails = new List<(string Method, string Url, string ResponseFormat, string ResponsePreview)>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             string jsonContent = File.ReadAllText(harFilePath);
             var options = new JsonSerializerOptions
@@ -301,6 +363,12 @@ namespace ApiForge.Utilities
                     continue;
                 }
 
+                // Skip data: URLs (base64 images etc.)
+                if (url.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
                 // Parse the URL to get the path and check the file extension
                 if (!Uri.TryCreate(url, UriKind.Absolute, out var parsedUri))
                 {
@@ -310,34 +378,79 @@ namespace ApiForge.Utilities
                 string path = parsedUri.AbsolutePath.ToLowerInvariant();
                 string extension = Path.GetExtension(path);
 
-                // Build the combined request text for keyword checking
-                string requestText = url.ToLowerInvariant();
-
-                if (request.Headers != null)
-                {
-                    foreach (var header in request.Headers)
-                    {
-                        requestText += (header.Name ?? "").ToLowerInvariant();
-                        requestText += (header.Value ?? "").ToLowerInvariant();
-                    }
-                }
-
-                string postDataText = request.PostData?.Text ?? "";
-                requestText += postDataText.ToLowerInvariant();
-
-                // Exclude URLs with excluded extensions or containing excluded keywords
+                // Exclude URLs with excluded extensions or containing excluded keywords in the hostname
                 bool hasExcludedExtension = !string.IsNullOrEmpty(extension) &&
                                             ExcludedExtensions.Contains(extension);
+                string hostname = parsedUri.Host.ToLowerInvariant();
                 bool hasExcludedKeyword = ExcludedKeywords.Any(keyword =>
-                    requestText.Contains(keyword, StringComparison.OrdinalIgnoreCase));
+                    hostname.Contains(keyword, StringComparison.OrdinalIgnoreCase));
 
-                if (!hasExcludedExtension && !hasExcludedKeyword)
+                if (hasExcludedExtension || hasExcludedKeyword)
                 {
-                    urlsWithDetails.Add((method, url, responseFormat, responsePreview));
+                    continue;
                 }
+
+                // For GraphQL endpoints, extract operationName to distinguish calls
+                string displayUrl = url;
+                string graphqlOpName = ExtractGraphqlOperationName(request.PostData);
+                if (!string.IsNullOrEmpty(graphqlOpName))
+                {
+                    displayUrl = $"{url}#op={graphqlOpName}";
+                    responsePreview = $"[{graphqlOpName}] {responsePreview}";
+                }
+
+                // Deduplicate by method + display URL
+                string dedupeKey = $"{method} {displayUrl}";
+                if (seen.Contains(dedupeKey))
+                {
+                    continue;
+                }
+                seen.Add(dedupeKey);
+
+                urlsWithDetails.Add((method, displayUrl, responseFormat, responsePreview));
             }
 
             return urlsWithDetails;
+        }
+
+        /// <summary>
+        /// Extracts the GraphQL operation name from HAR postData.
+        /// Tries: 1) explicit "operationName" field, 2) root field name from the query string.
+        /// </summary>
+        private static string ExtractGraphqlOperationName(HarPostData? postData)
+        {
+            if (postData?.Text == null) return "";
+            try
+            {
+                using var doc = JsonDocument.Parse(postData.Text);
+                // 1) Explicit operationName
+                if (doc.RootElement.TryGetProperty("operationName", out var opProp))
+                {
+                    var opName = opProp.GetString();
+                    if (!string.IsNullOrEmpty(opName))
+                        return opName;
+                }
+                // 2) Extract root field name from the query string
+                if (doc.RootElement.TryGetProperty("query", out var queryProp))
+                {
+                    var query = queryProp.GetString() ?? "";
+                    return ExtractGraphqlRootField(query);
+                }
+            }
+            catch { }
+            return "";
+        }
+
+        /// <summary>
+        /// Extracts the root field name from a GraphQL query string.
+        /// E.g. "query ($id: String!) { classroom (...) { ... } }" -> "classroom"
+        /// Also handles "mutation (...) { syncClassroom (...) }" -> "syncClassroom"
+        /// </summary>
+        private static string ExtractGraphqlRootField(string query)
+        {
+            // Find the first '{' and then the next word token
+            var match = Regex.Match(query, @"\{\s*(\w+)");
+            return match.Success ? match.Groups[1].Value : "";
         }
 
         /// <summary>

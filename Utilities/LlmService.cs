@@ -31,7 +31,7 @@ public class LlmService
         // Auto-set limit for local models
         if (_endpoint != null)
         {
-            MaxPromptChars = 8000; // ~2K tokens, safe for small local models
+            MaxPromptChars = 24000; // ~6K tokens, works for 8B+ models
         }
     }
 
