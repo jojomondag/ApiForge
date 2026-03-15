@@ -33,18 +33,19 @@ namespace ApiForge.Utilities
         /// </summary>
         private static readonly string[] ExcludedKeywords =
         {
-            "google",
             "gstatic",
-            "googleapis",
             "googleusercontent",
+            "googlesyndication",
+            "googletagmanager",
+            "googleadservices",
+            "google-analytics",
+            "googleoptimize",
             "taboola",
             "datadog",
             "sentry",
             "facebook",
             "fbcdn",
             "doubleclick",
-            "googlesyndication",
-            "googletagmanager",
             "cloudflare",
             "recaptcha"
         };

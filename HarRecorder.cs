@@ -54,10 +54,50 @@ public class HarRecorder
                 "Chrome hittades inte. Ange browserExecutablePath eller installera Chrome.");
 
         // 2. Build arguments — Chrome launches as a NORMAL window, we just add debugging port
+        //    Chrome refuses --remote-debugging-port with its default User Data dir,
+        //    so we create a junction (symlink) to trick it while preserving DPAPI encryption.
+        var effectiveUserDataDir = userProfilePath;
+        string? junctionPath = null;
+
+        var defaultChromeDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Google", "Chrome", "User Data");
+
+        if (Path.GetFullPath(userProfilePath).TrimEnd('\\').Equals(
+            Path.GetFullPath(defaultChromeDir).TrimEnd('\\'), StringComparison.OrdinalIgnoreCase))
+        {
+            // Create a junction to the real User Data dir under a different name
+            junctionPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Google", "Chrome-Debug-Link");
+
+            // Remove old junction if exists
+            if (Directory.Exists(junctionPath))
+            {
+                try { Directory.Delete(junctionPath, false); } catch { }
+            }
+
+            // Create junction: mklink /J "Chrome-Debug-Link" "User Data"
+            var mklink = Process.Start(new ProcessStartInfo
+            {
+                FileName = "cmd.exe",
+                Arguments = $"/c mklink /J \"{junctionPath}\" \"{userProfilePath}\"",
+                UseShellExecute = false,
+                CreateNoWindow = true
+            });
+            mklink?.WaitForExit(5000);
+
+            if (Directory.Exists(junctionPath))
+            {
+                effectiveUserDataDir = junctionPath;
+                Console.WriteLine($"[Recorder] Junction skapad: {junctionPath} -> {userProfilePath}");
+            }
+        }
+
         var argParts = new List<string>
         {
             "--remote-debugging-port=9222",
-            $"--user-data-dir=\"{userProfilePath}\"",
+            $"--user-data-dir=\"{effectiveUserDataDir}\"",
             "--disable-blink-features=AutomationControlled"
         };
         if (!string.IsNullOrEmpty(profileDirectory))
@@ -141,6 +181,12 @@ public class HarRecorder
         // 13. Disconnect (does NOT close Chrome)
         foreach (var (client, _, _) in cdpClients)
             await client.DisposeAsync();
+
+        // 14. Clean up junction if we created one
+        if (junctionPath != null && Directory.Exists(junctionPath))
+        {
+            try { Directory.Delete(junctionPath, false); } catch { }
+        }
 
         Console.WriteLine("[Recorder] Klar! Chrome körs fortfarande.");
     }

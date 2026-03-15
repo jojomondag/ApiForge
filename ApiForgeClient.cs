@@ -92,10 +92,11 @@ public class ApiForgeClient
         IEnumerable<Microsoft.Playwright.Cookie>? cookies = null,
         string? userProfilePath = null,
         string? browserExecutablePath = null,
-        string? profileDirectory = null)
+        string? profileDirectory = null,
+        Func<Task>? waitForInput = null)
     {
         var recorder = new HarRecorder();
-        await recorder.RecordAsync(harFilePath, cookieFilePath, startUrl: startUrl, cookies: cookies,
+        await recorder.RecordAsync(harFilePath, cookieFilePath, waitForInput: waitForInput, startUrl: startUrl, cookies: cookies,
             userProfilePath: userProfilePath, browserExecutablePath: browserExecutablePath, profileDirectory: profileDirectory);
     }
 }

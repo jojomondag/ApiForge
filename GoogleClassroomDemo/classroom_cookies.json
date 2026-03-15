@@ -1,0 +1,702 @@
+[
+  {
+    "name": "COMPASS",
+    "value": "gmail_chat=CrMBAAlriVd1mUkSMmcAZln3y__3FVGNK5OpvPkD4nyuU7Ll2Fi7eIeu06FEHOZ_6plKD_eY8frw8-RnMwur8oe7LkMj1OQdwxs0Je6FpGtCpYc96eQ0J_3_RLNB4cq61nFp9DVnQ9aszE5bNsRAzx5BmMhoNHd4vWkEEGGgIBTv5ELno9O8dqEr69rnmwa1Qshlm3WIqDvDr9p9NLbkPd_bcs8aGwe9cqinQDwraUdnrU3p6sIQ_PTXzQYa6gEACWuJV49rxMxk45GJNl3IaxYoZZgY4sH15e6cCwF6I3k3JV60wNYRwoE4iRSdjORJgvhTkfBJWzqHrC6Hxc-4uVMilUyLKVF8pS4dcgM-oP10Qo7sHfHTHV2Nv7Jh_7j2820S6vLtDoW99xJbWT9OimhISDrU5mll3H-uNdFmiaiWs5BTrA66YSAFPD4RCthm7Mc1MAraak5w0gu9Bm3vAoPcsMywuZ18sLPukZMxmiazNrtvwcr2qp7fh49kOe9F5EpfAQo00boHe7V_aIpTXzwTMD4L6FurgAMRngfjV9SWDqhGxXKS-q0wAQ",
+    "domain": "mail.google.com",
+    "path": "/chat/u/0",
+    "expires": 1774310244.007853,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "SNID",
+    "value": "ALbZf36daK3srXa29UnPgrdi6aZc3pktDt2s2jDNux3XSq1XXouW7QkuiEYW8W65FxkxfumpAt835G4Eyx3mrcxejCXmUixjxQ",
+    "domain": ".google.com",
+    "path": "/verify",
+    "expires": 1789319370.37629,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "OTZ",
+    "value": "8519014_52_52_123900_48_436380",
+    "domain": "accounts.google.com",
+    "path": "/",
+    "expires": 1776036858,
+    "httpOnly": false,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "4523a65393ed8462ea0b1cbe37795eb2",
+    "value": "Hiddenfactor_6db4d11f59f862b77917926f9b726270",
+    "domain": "login.grandid.com",
+    "path": "/",
+    "expires": 1808004884.850833,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "None"
+  },
+  {
+    "name": "SID",
+    "value": "g.a0007wgHO-xEsJU9PLflXc6rIkvAchvCPKKVk4OFrNz9OH268ttieHe_omzMm4dMO7esrVuf9QACgYKARsSARESFQHGX2MiWK4ETa0CTt6nYR9ZvYL2-hoVAUF8yKoGA_fv2Q394tCd5gV4_py20076",
+    "domain": ".google.com",
+    "path": "/",
+    "expires": 1808004907.848628,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "None"
+  },
+  {
+    "name": "__Secure-1PSID",
+    "value": "g.a0007wgHO-xEsJU9PLflXc6rIkvAchvCPKKVk4OFrNz9OH268ttimh-uRnVtBPfv-hlT3GgXWwACgYKAUQSARESFQHGX2Mi23EBl0d-rtwv2V9yLg0xdxoVAUF8yKr13EGQLXlh0-Gqu_lMoewM0076",
+    "domain": ".google.com",
+    "path": "/",
+    "expires": 1808004907.848747,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "__Secure-3PSID",
+    "value": "g.a0007wgHO-xEsJU9PLflXc6rIkvAchvCPKKVk4OFrNz9OH268ttih6KyCXHbWanEMlU7NfromAACgYKAekSARESFQHGX2Mi_o4tRMmUXqyMaG888oUEdRoVAUF8yKr_sdRSMAVtpbcSem34bvQa0076",
+    "domain": ".google.com",
+    "path": "/",
+    "expires": 1808004907.848766,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "HSID",
+    "value": "AnICUgyPZC3w5EuPi",
+    "domain": ".google.com",
+    "path": "/",
+    "expires": 1808004907.848827,
+    "httpOnly": true,
+    "secure": false,
+    "sameSite": "None"
+  },
+  {
+    "name": "SSID",
+    "value": "AKTwTX0SP0VHQbjYq",
+    "domain": ".google.com",
+    "path": "/",
+    "expires": 1808004907.848845,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "APISID",
+    "value": "smPAEDM9Rc-nmT1a/ADDAJEi9cJPACbvc4",
+    "domain": ".google.com",
+    "path": "/",
+    "expires": 1808004907.848859,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "None"
+  },
+  {
+    "name": "SAPISID",
+    "value": "t6irhhCFOAEEzs7T/AsQtsZdxFBws_yJSq",
+    "domain": ".google.com",
+    "path": "/",
+    "expires": 1808004907.848877,
+    "httpOnly": false,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "__Secure-1PAPISID",
+    "value": "t6irhhCFOAEEzs7T/AsQtsZdxFBws_yJSq",
+    "domain": ".google.com",
+    "path": "/",
+    "expires": 1808004907.848892,
+    "httpOnly": false,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "__Secure-3PAPISID",
+    "value": "t6irhhCFOAEEzs7T/AsQtsZdxFBws_yJSq",
+    "domain": ".google.com",
+    "path": "/",
+    "expires": 1808004907.848914,
+    "httpOnly": false,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "ACCOUNT_CHOOSER",
+    "value": "AFx_qI6UWgJrmqgRpQkkTeoIiKlVVmhrBzFadKs8LpahdBYBs0mUASX9xd9jzTU2RK5_9Ph3t02Q0_qixRiXXUUdIpeV2WIPhBraFyyQ5aKx0UtR2rf4wc4",
+    "domain": "accounts.google.com",
+    "path": "/",
+    "expires": 1808004907.848929,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "__Host-GAPS",
+    "value": "1:wVTAv8a-Vy_by5yCQwY1kKqY_83abgat3AzgTYP083rDzwvc2tpMB81ZN4348dzw1z4JM6Jh8R-QMcnDeQqiz7vTBGckuQ:YWCjnDX_ib6nLMDN",
+    "domain": "accounts.google.com",
+    "path": "/",
+    "expires": 1808004907.848943,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "HSID",
+    "value": "AL-oEdZb1BWy_soAa",
+    "domain": ".youtube.com",
+    "path": "/",
+    "expires": 1808004907.983274,
+    "httpOnly": true,
+    "secure": false,
+    "sameSite": "None"
+  },
+  {
+    "name": "SSID",
+    "value": "Az38v8rtgFQGFY2HO",
+    "domain": ".youtube.com",
+    "path": "/",
+    "expires": 1808004907.983296,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "APISID",
+    "value": "smPAEDM9Rc-nmT1a/ADDAJEi9cJPACbvc4",
+    "domain": ".youtube.com",
+    "path": "/",
+    "expires": 1808004907.983312,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "None"
+  },
+  {
+    "name": "SAPISID",
+    "value": "t6irhhCFOAEEzs7T/AsQtsZdxFBws_yJSq",
+    "domain": ".youtube.com",
+    "path": "/",
+    "expires": 1808004907.983324,
+    "httpOnly": false,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "__Secure-1PAPISID",
+    "value": "t6irhhCFOAEEzs7T/AsQtsZdxFBws_yJSq",
+    "domain": ".youtube.com",
+    "path": "/",
+    "expires": 1808004907.983336,
+    "httpOnly": false,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "__Secure-3PAPISID",
+    "value": "t6irhhCFOAEEzs7T/AsQtsZdxFBws_yJSq",
+    "domain": ".youtube.com",
+    "path": "/",
+    "expires": 1808004907.98335,
+    "httpOnly": false,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "SID",
+    "value": "g.a0007wgHO-xEsJU9PLflXc6rIkvAchvCPKKVk4OFrNz9OH268ttieHe_omzMm4dMO7esrVuf9QACgYKARsSARESFQHGX2MiWK4ETa0CTt6nYR9ZvYL2-hoVAUF8yKoGA_fv2Q394tCd5gV4_py20076",
+    "domain": ".youtube.com",
+    "path": "/",
+    "expires": 1808004907.983362,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "None"
+  },
+  {
+    "name": "__Secure-1PSID",
+    "value": "g.a0007wgHO-xEsJU9PLflXc6rIkvAchvCPKKVk4OFrNz9OH268ttimh-uRnVtBPfv-hlT3GgXWwACgYKAUQSARESFQHGX2Mi23EBl0d-rtwv2V9yLg0xdxoVAUF8yKr13EGQLXlh0-Gqu_lMoewM0076",
+    "domain": ".youtube.com",
+    "path": "/",
+    "expires": 1808004907.983378,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "__Secure-3PSID",
+    "value": "g.a0007wgHO-xEsJU9PLflXc6rIkvAchvCPKKVk4OFrNz9OH268ttih6KyCXHbWanEMlU7NfromAACgYKAekSARESFQHGX2Mi_o4tRMmUXqyMaG888oUEdRoVAUF8yKr_sdRSMAVtpbcSem34bvQa0076",
+    "domain": ".youtube.com",
+    "path": "/",
+    "expires": 1808004907.983392,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "HSID",
+    "value": "AL-oEdZb1BWy_soAa",
+    "domain": ".google.se",
+    "path": "/",
+    "expires": 1808004908.055784,
+    "httpOnly": true,
+    "secure": false,
+    "sameSite": "None"
+  },
+  {
+    "name": "SSID",
+    "value": "Az38v8rtgFQGFY2HO",
+    "domain": ".google.se",
+    "path": "/",
+    "expires": 1808004908.055845,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "APISID",
+    "value": "smPAEDM9Rc-nmT1a/ADDAJEi9cJPACbvc4",
+    "domain": ".google.se",
+    "path": "/",
+    "expires": 1808004908.055862,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "None"
+  },
+  {
+    "name": "SAPISID",
+    "value": "t6irhhCFOAEEzs7T/AsQtsZdxFBws_yJSq",
+    "domain": ".google.se",
+    "path": "/",
+    "expires": 1808004908.055878,
+    "httpOnly": false,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "__Secure-1PAPISID",
+    "value": "t6irhhCFOAEEzs7T/AsQtsZdxFBws_yJSq",
+    "domain": ".google.se",
+    "path": "/",
+    "expires": 1808004908.055892,
+    "httpOnly": false,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "__Secure-3PAPISID",
+    "value": "t6irhhCFOAEEzs7T/AsQtsZdxFBws_yJSq",
+    "domain": ".google.se",
+    "path": "/",
+    "expires": 1808004908.055907,
+    "httpOnly": false,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "NID",
+    "value": "529=zppBcfWK1Cn8u6-hDWlVHwfgqUwzIEqpziT4NcDCvs3gGCGi8UGfjXLTcMA1nkDMGVJPdAz88HcERrumZIyXURXyxKu3ZkKMHXTKmGfsuCSIgcY4hypIR0ZOURj0De1kBg6vDOW7UFgXH8ISsGzOmeUYj5M5z7FE6TRnrtBBbc3EeV3lpOAGD3W9o6-0Zvpc8Uwq6nSNoU6wiKf01jyWT984xOBD4iu2NqO7zok8rTsTb-ycOBicmCV_NZVLTCIZ",
+    "domain": ".google.se",
+    "path": "/",
+    "expires": 1789256108.055924,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "SID",
+    "value": "g.a0007wgHO-xEsJU9PLflXc6rIkvAchvCPKKVk4OFrNz9OH268ttieHe_omzMm4dMO7esrVuf9QACgYKARsSARESFQHGX2MiWK4ETa0CTt6nYR9ZvYL2-hoVAUF8yKoGA_fv2Q394tCd5gV4_py20076",
+    "domain": ".google.se",
+    "path": "/",
+    "expires": 1808004908.055943,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "None"
+  },
+  {
+    "name": "__Secure-1PSID",
+    "value": "g.a0007wgHO-xEsJU9PLflXc6rIkvAchvCPKKVk4OFrNz9OH268ttimh-uRnVtBPfv-hlT3GgXWwACgYKAUQSARESFQHGX2Mi23EBl0d-rtwv2V9yLg0xdxoVAUF8yKr13EGQLXlh0-Gqu_lMoewM0076",
+    "domain": ".google.se",
+    "path": "/",
+    "expires": 1808004908.055958,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "__Secure-3PSID",
+    "value": "g.a0007wgHO-xEsJU9PLflXc6rIkvAchvCPKKVk4OFrNz9OH268ttih6KyCXHbWanEMlU7NfromAACgYKAekSARESFQHGX2Mi_o4tRMmUXqyMaG888oUEdRoVAUF8yKr_sdRSMAVtpbcSem34bvQa0076",
+    "domain": ".google.se",
+    "path": "/",
+    "expires": 1808004908.055973,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "OTZ",
+    "value": "8519015_52_52_123900_48_436380",
+    "domain": "classroom.google.com",
+    "path": "/",
+    "expires": 1776036909,
+    "httpOnly": false,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "OTZ",
+    "value": "8519015_52_52_123900_48_436380",
+    "domain": "ogs.google.com",
+    "path": "/",
+    "expires": 1776036913,
+    "httpOnly": false,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "AEC",
+    "value": "AaJma5ug1Uo5NKWitjeXW4-rscMsN9yQ9Gk8Uy6dXrKRuYZfFsT9pAE_rws",
+    "domain": ".google.com",
+    "path": "/",
+    "expires": 1788998097.865706,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "__Secure-BUCKET",
+    "value": "CNQG",
+    "domain": ".google.com",
+    "path": "/",
+    "expires": 1788998097.865818,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "OSID",
+    "value": "g.a0007wgHO8Z0XnLbZBchVxMOLU98o5I5O5WaKbP88iCCYVbP7WIPhUAaoHw6seGk8awYWGeRPQACgYKAcYSARESFQHGX2MiczSdExgpKRAT6GNxXPimmhoVAUF8yKqeg0t_nq-gUWtTwKil2olS0076",
+    "domain": "mail.google.com",
+    "path": "/",
+    "expires": 1808006243.867795,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "__Secure-OSID",
+    "value": "g.a0007wgHO8Z0XnLbZBchVxMOLU98o5I5O5WaKbP88iCCYVbP7WIPvCaKniBEDD_DlEJKVvlO4wACgYKAXISARESFQHGX2Mia8x3KcYeQplEvfce6uD6DRoVAUF8yKoG9jGBwMTgpq_kdoeRqtY30076",
+    "domain": "mail.google.com",
+    "path": "/",
+    "expires": 1808006243.868284,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "OSID",
+    "value": "g.a0007wgHO1VnPjFHfQgh5yFJz0-3aEwBJOIsKPEaXz8sC0e-BFcSFPAIHkPhMOz_UoFs2U2-WQACgYKAZoSARESFQHGX2MiEkbfEACdtom4vkRW0HrmKRoVAUF8yKqwH8zQaISkTdYll1b_ql1X0076",
+    "domain": "play.google.com",
+    "path": "/",
+    "expires": 1808068168.98039,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "__Secure-OSID",
+    "value": "g.a0007wgHO1VnPjFHfQgh5yFJz0-3aEwBJOIsKPEaXz8sC0e-BFcSYUEuG2_lDiG8p3alZrYnPwACgYKAdkSARESFQHGX2Mi-OhzN6umDCSoWRY7tP4RKBoVAUF8yKo00ChYoh0D9PYpY520UWGr0076",
+    "domain": "play.google.com",
+    "path": "/",
+    "expires": 1808068168.980482,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "SOCS",
+    "value": "CAISHAgCEhJnd3NfMjAyNjAzMTItMF9SQzEaAnN2IAEaBgiAytLNBg",
+    "domain": ".google.com",
+    "path": "/",
+    "expires": 1807636170.380649,
+    "httpOnly": false,
+    "secure": true,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "__Secure-YENID",
+    "value": "14.YTE=dR56m5yRcYSPdaHI3Sjd9YWiK6CiSs5sIxewi1ajxHriExCG-eY-tbAkq5jQeTnr9McHO9ZhdwGSTqalxu_akJSHyA-MZnio3ijoMehoMGK4dWL1uMdOrqGzml1ysr-uWGCnsu8EpHiHtLy13o_8YkDt4LVEfa_gkWlVoAlAbLXFXX5yuFb6NvyMGgIUigm9PkvH2lozxe7KtDlipoMM-_9kt0XzkxgWyRHCdn_Kc1aDfo5z3sTe-zSeHiMdTizw49LnxO5ekmxi60q7qEhR21ZDhHS7F-Kj7doM0NOq4mjako1nzi57orY_Bi2NsfmFvARfYUjoISawoITWZZy1JA",
+    "domain": ".youtube.com",
+    "path": "/",
+    "expires": 1807636174.684481,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "__Secure-ROLLOUT_TOKEN",
+    "value": "CICgwP21jLzUmgEQ-5Ki5vCfkwMYpPWv5vCfkwM%3D",
+    "domain": ".youtube.com",
+    "path": "/",
+    "expires": 1789060174.992133,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "LOGIN_INFO",
+    "value": "AFmmF2swRQIgX9oG9_qJo1fofGKZLs0VY_9b3QqubMSTPCIXhVQQXXACIQD8QVPBrChzHJsA01cSAWFfxv7yyxRnJJaJdou6AiLKaw:QUQ3MjNmd0xNMU9aMlV3N0NoY3UyVWI0SHc3LUFpTDdsd3p5N3NtQ25TWGwtU29RdFMtUDlvV25NYWdKVFdiNjFaWWFNLTQ5R1hHNmU2ZlRudjYwX1BELUtxS0NSeW5pNFFBM2gzLVhDV2pzOHA4RldPQWlaYTBVdkhrdTRUOE1fMXBBSGJ5UmQ4NkpjN0VqMFhURVZCYWo2VFVXelRpTXpn",
+    "domain": ".youtube.com",
+    "path": "/",
+    "expires": 1808068174.992182,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "PREF",
+    "value": "f4=4000000\u0026tz=Europe.Stockholm",
+    "domain": ".youtube.com",
+    "path": "/",
+    "expires": 1808068177.406963,
+    "httpOnly": false,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "VISITOR_PRIVACY_METADATA",
+    "value": "CgJTRRIiEh4SHAsMDg8QERITFBUWFxgZGhscHR4fICEiIyQlJicgSw%3D%3D",
+    "domain": ".youtube.com",
+    "path": "/",
+    "expires": 1789060178.097518,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "__Secure-1PSIDTS",
+    "value": "sidts-CjQBBj1CYkHB2homs-W0XCBAzUjStzzq7R1O4c6MVBWBUeB6IOQ3BDhrJ_zEpmlkOrX1y-7UEAA",
+    "domain": ".youtube.com",
+    "path": "/",
+    "expires": 1805044178.694056,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "__Secure-3PSIDTS",
+    "value": "sidts-CjQBBj1CYkHB2homs-W0XCBAzUjStzzq7R1O4c6MVBWBUeB6IOQ3BDhrJ_zEpmlkOrX1y-7UEAA",
+    "domain": ".youtube.com",
+    "path": "/",
+    "expires": 1805044178.694148,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "SIDCC",
+    "value": "AKEyXzVr_ZTLXNVTvrpcynLyzbeAxzRY5GzxFfmG8USfD7iLW84mxKNvk9_lPsEy52XDvLq_",
+    "domain": ".youtube.com",
+    "path": "/",
+    "expires": 1805044186.678163,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "None"
+  },
+  {
+    "name": "__Secure-1PSIDCC",
+    "value": "AKEyXzUqBjK2YB-Td9HmZojnnoZHwa9DFW3YrUCvTNNxpoLBVsUU0SxLubVQDqxhbuDg75tQjg",
+    "domain": ".youtube.com",
+    "path": "/",
+    "expires": 1805044186.67824,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "__Secure-3PSIDCC",
+    "value": "AKEyXzVljXk1yJEh8mG4IQqSXTP72JjovWIcrz_UbVT19UvwQmgdoEvZ4PiYJLJl8N6h3xBq8w",
+    "domain": ".youtube.com",
+    "path": "/",
+    "expires": 1805044186.678265,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "OSID",
+    "value": "g.a0007wgHO1uuY0bRs9vAz0b8nn9XZtTw41jJTbxcQ9Llis6Qb0lfEWL5qmDah8dgCwRAyJlIzAACgYKAcESARESFQHGX2MispunZG6aF0IQCZGDd8KNOBoVAUF8yKqMqAFpYhNYsl-6bhQM1-770076",
+    "domain": ".docs.google.com",
+    "path": "/",
+    "expires": 1808082159.62054,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "__Secure-OSID",
+    "value": "g.a0007wgHO1uuY0bRs9vAz0b8nn9XZtTw41jJTbxcQ9Llis6Qb0lfiicf9CYvLEPx6deDoKocRwACgYKATYSARESFQHGX2MiVBF9SPs41_uQnxmeffUktxoVAUF8yKpnap5sjR3hPUhceSuyswIM0076",
+    "domain": ".docs.google.com",
+    "path": "/",
+    "expires": 1808082159.620605,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "LSID",
+    "value": "o.drive.google.com|o.mail.google.com|o.play.google.com|s.SE|s.youtube:g.a0007wgHO0KCV616CMKGMtdUc3scK5JRK5tBznRQsiG9flQ59gR5gMxCUS8Gf9beEUmFxjBi0gACgYKAWoSARESFQHGX2MiMmCGrGqYvbqbS29DftkTWBoVAUF8yKrfdkM9A6TXMpQd7rMb1AKP0076",
+    "domain": "accounts.google.com",
+    "path": "/",
+    "expires": 1808082160.865487,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "__Host-1PLSID",
+    "value": "o.drive.google.com|o.mail.google.com|o.play.google.com|s.SE|s.youtube:g.a0007wgHO0KCV616CMKGMtdUc3scK5JRK5tBznRQsiG9flQ59gR5_hM0xMv-_YxpkjXdxRV23AACgYKAcISARESFQHGX2MiYh6devOKE1kHciYYpd_bthoVAUF8yKqhBN2kexXD42RB2fb873wg0076",
+    "domain": "accounts.google.com",
+    "path": "/",
+    "expires": 1808082160.865567,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "__Host-3PLSID",
+    "value": "o.drive.google.com|o.mail.google.com|o.play.google.com|s.SE|s.youtube:g.a0007wgHO0KCV616CMKGMtdUc3scK5JRK5tBznRQsiG9flQ59gR5f-fkzw43v-3nljIa_yCG2wACgYKAakSARESFQHGX2MipGX-YV1uk1jWR02hYGjXzxoVAUF8yKp5KJXs-2A8NiHDZ0mtC3uH0076",
+    "domain": "accounts.google.com",
+    "path": "/",
+    "expires": 1808082160.865859,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "OSID",
+    "value": "g.a0007wgHO553PsGfQvkOVp9AznYxjP_lbVhzRAMFhc_Fx_6e_rk9iuoV_GSm4DelOskUnxdUwgACgYKAQkSARESFQHGX2MiRImmnH0FUxVioqBmey8S2RoVAUF8yKp1jF8K_5J1csni2W1Mc2x80076",
+    "domain": "drive.google.com",
+    "path": "/",
+    "expires": 1808082160.903896,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "__Secure-OSID",
+    "value": "g.a0007wgHO553PsGfQvkOVp9AznYxjP_lbVhzRAMFhc_Fx_6e_rk996BFgIUXt1v3taT-wE57MgACgYKARASARESFQHGX2MiPDWjTskgKe52pkuPpQFlQxoVAUF8yKq6m1nJrRbsDxOJYISS1Ghq0076",
+    "domain": "drive.google.com",
+    "path": "/",
+    "expires": 1808082160.903958,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "OTZ",
+    "value": "8520303_52_52_123900_48_436380",
+    "domain": "drive.google.com",
+    "path": "/",
+    "expires": 1776114162,
+    "httpOnly": false,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "datr",
+    "value": "VM21aV4X5KOcBjjDbWOc884v",
+    "domain": ".facebook.com",
+    "path": "/",
+    "expires": 1808082263.327528,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "dpr",
+    "value": "1.5",
+    "domain": ".facebook.com",
+    "path": "/",
+    "expires": 1774127064,
+    "httpOnly": false,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "NID",
+    "value": "529=fAPtsNXP4nZXQjjDtubec0LAhmdftKnEL5kOiDfsPnwzsah-wI21uTCwUqKhDAwUslS0CSN8nj14lHOcjYUu2T3UWSNN3ST1__QHJUGAIn_SHEaMBTMIB2mmyzKrMYiCTqAoq6p9bBeGF6c7WPkYdFWeFDQgeCu6cIWlChP-2-LPt5V4ENjX5ht1bLnUnKJt3Kmrx9aT8nIHLhLy0x9-MJ8g85jze1CGQ2ZuQrg8QxTn1lymRVBYg0E3eysp1A3htxfbJgGJqmCXUvMbS2qryEMxWZDGtNJ4mBs2ytjGGnKcrrHysVm8bnqKyIaH0Ov6faAM3x1vcDJ4xFBYt2FLGmW9N1QiaW_H7O8HNE1LS-6lbbwaNIpK",
+    "domain": ".google.com",
+    "path": "/",
+    "expires": 1789319369.695798,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "NID",
+    "value": "529=Fw462HUQbKcJp0Uq6RFfGfq8X20BGJOLjMk-cdu-_x9oFX70-rpdjw-xwR4spIcGinOnxgf-eoQ7Tpc7KKQlKesZQsc8Sq5tPWERaryjaSv8rlc09Ir7L2z8D2CYYajT2Dyrnh2Dr_9qkI_1Rpi9SiG_AG_5FiDkahz29YRIV1X4gPpaj9091qXPd4uyF2yvPb9GPZxAbJK1BCBwjEs93NB19h1SRu_hpds5xnMkrZQ",
+    "domain": ".lensfrontend-pa.googleapis.com",
+    "path": "/",
+    "expires": 1789350480.614188,
+    "httpOnly": true,
+    "secure": false,
+    "sameSite": "None"
+  },
+  {
+    "name": "__Secure-1PSIDTS",
+    "value": "sidts-CjEBBj1CYjqM0znz2nCTVxXW1cbVmnoDTAla-aH4JXei7q2MlkmDtSBYukoKaxhgZWWaEAA",
+    "domain": ".google.com",
+    "path": "/",
+    "expires": 1805116964.748388,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "__Secure-3PSIDTS",
+    "value": "sidts-CjEBBj1CYjqM0znz2nCTVxXW1cbVmnoDTAla-aH4JXei7q2MlkmDtSBYukoKaxhgZWWaEAA",
+    "domain": ".google.com",
+    "path": "/",
+    "expires": 1805116964.748524,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "SIDCC",
+    "value": "AKEyXzXgOC0egOmurvVCEQoc3jIi69fg_SIIv1WDiXVlttZE0Uki_hKydPUglJ2_2m71VJ8t4nA",
+    "domain": ".google.com",
+    "path": "/",
+    "expires": 1805117018.277425,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "None"
+  },
+  {
+    "name": "__Secure-1PSIDCC",
+    "value": "AKEyXzWBa4-zvVZ-56zsYSPTScoQHz-FncLA_hOlvT4YcUTx-WQeIWmRhHAMC5kZ4dzkxcRAtA",
+    "domain": ".google.com",
+    "path": "/",
+    "expires": 1805117018.277547,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "__Secure-3PSIDCC",
+    "value": "AKEyXzXxF38AAX3lt7hcpwMCwl_33OWyx8LPh6KYmxINU0Z4i7xH6F0_EHgmNE1Az8fqVz1YhAw",
+    "domain": ".google.com",
+    "path": "/",
+    "expires": 1805117018.27759,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  }
+]
