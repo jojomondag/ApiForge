@@ -15,4 +15,10 @@
     <PackageReference Include="AngleSharp" Version="1.4.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="schools.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

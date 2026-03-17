@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json;
 using ApiForge;
 using Microsoft.Playwright;
 using SchoolSoftDemo;
@@ -9,13 +10,48 @@ Console.SetOut(new StreamWriter(Console.OpenStandardOutput(), new UTF8Encoding(f
 
 const string harFile = "schoolsoft.har";
 const string cookieFile = "schoolsoft_cookies.json";
-const string schoolSlug = "nti";
 const string baseUrl = "https://sms.schoolsoft.se";
-const string ssoUrl = $"{baseUrl}/{schoolSlug}/sso";
-// Use the startpage for session validation — it's the most reliable (no special params needed)
-const string validationUrl = $"{baseUrl}/{schoolSlug}/jsp/teacher/right_teacher_startpage.jsp?action=select_sidebar&menutype=1";
+const string schoolsFile = "schools.json";
+
+// --- Quick HAR recording mode: dotnet run -- record ---
+if (args.Length > 0 && args[0] == "record")
+{
+    var slug = args.Length > 1 ? args[1] : "nti";
+    var session = await TokenManager.LoadSession();
+    if (session == null) { Console.WriteLine("Ingen sparad session. Kor programmet utan 'record' forst."); return; }
+    Console.WriteLine($"=== HAR-inspelning ({slug}) ===");
+    Console.WriteLine($"Session: {session.Cookies.Count} cookies, sparad {session.SavedAt:yyyy-MM-dd HH:mm}");
+    Microsoft.Playwright.Program.Main(["install", "chromium"]);
+    var startUrl = $"{baseUrl}/{slug}/jsp/teacher/right_teacher_startpage.jsp?action=select_sidebar&menutype=1";
+    Console.WriteLine($"Oppnar: {startUrl}");
+    Console.WriteLine("Navigera till narvarosidan med skolvaljaren. Tryck Enter nar du ar klar.");
+    var pwCookies = session.Cookies
+        .Where(c => !string.IsNullOrEmpty(c.Name) && !string.IsNullOrEmpty(c.Domain))
+        .Select(c => new Microsoft.Playwright.Cookie
+        {
+            Name = c.Name, Value = c.Value,
+            Domain = c.Domain.StartsWith('.') ? c.Domain : c.Domain,
+            Path = c.Path ?? "/", Secure = c.Secure, HttpOnly = c.HttpOnly,
+            Expires = c.Expires.HasValue ? (float)c.Expires.Value : -1
+        }).ToList();
+    Console.WriteLine($"Injicerar {pwCookies.Count} session-cookies...");
+    await new ApiForgeClient().RecordHarAsync(harFile, cookieFile, startUrl: startUrl, cookies: pwCookies);
+    Console.WriteLine($"Inspelning sparad: {harFile}");
+    return;
+}
+
+// --- Load known schools ---
+var schools = await LoadSchoolsAsync();
 
 Console.WriteLine("=== SchoolSoft Schema Hamtare ===");
+Console.WriteLine();
+
+// --- School selection ---
+var schoolSlug = await SelectSchoolAsync(schools);
+var ssoUrl = $"{baseUrl}/{schoolSlug}/sso";
+var validationUrl = $"{baseUrl}/{schoolSlug}/jsp/teacher/right_teacher_startpage.jsp?action=select_sidebar&menutype=1";
+
+Console.WriteLine();
 Console.WriteLine($"    Skola: {schoolSlug}");
 Console.WriteLine($"    SSO:   {ssoUrl}");
 Console.WriteLine();
@@ -287,12 +323,21 @@ var currentWeek = ScheduleFetcher.GetCurrentWeek();
 while (true)
 {
     Console.WriteLine();
-    Console.WriteLine("=== Schema ===");
-    Console.Write($"Ange vecka (Enter = v{currentWeek}, 'q' = avsluta): ");
+    Console.WriteLine($"=== Schema ({schoolSlug}) ===");
+    Console.Write($"Ange vecka (Enter = v{currentWeek}, 's' = byt skola, 'q' = avsluta): ");
     var weekInput = Console.ReadLine()?.Trim();
 
     if (weekInput?.ToLower() is "q" or "quit" or "avsluta")
         break;
+
+    if (weekInput?.ToLower() is "s" or "skola" or "byt")
+    {
+        schoolSlug = await SelectSchoolAsync(schools);
+        ssoUrl = $"{baseUrl}/{schoolSlug}/sso";
+        validationUrl = $"{baseUrl}/{schoolSlug}/jsp/teacher/right_teacher_startpage.jsp?action=select_sidebar&menutype=1";
+        Console.WriteLine($"Bytte till skola: {schoolSlug}");
+        continue;
+    }
 
     int week = currentWeek;
     if (!string.IsNullOrEmpty(weekInput))
@@ -456,6 +501,96 @@ while (true)
     {
         Console.WriteLine($"Kunde inte hamta schemat: {ex.Message}");
     }
+}
+
+// --- Skol-hantering ---
+
+async Task<List<SchoolEntry>> LoadSchoolsAsync()
+{
+    if (File.Exists(schoolsFile))
+    {
+        try
+        {
+            var json = await File.ReadAllTextAsync(schoolsFile);
+            return JsonSerializer.Deserialize<List<SchoolEntry>>(json) ?? new List<SchoolEntry>();
+        }
+        catch
+        {
+            return new List<SchoolEntry>();
+        }
+    }
+    return new List<SchoolEntry>();
+}
+
+async Task SaveSchoolsAsync(List<SchoolEntry> list)
+{
+    var json = JsonSerializer.Serialize(list, new JsonSerializerOptions { WriteIndented = true });
+    await File.WriteAllTextAsync(schoolsFile, json);
+}
+
+async Task<string> SelectSchoolAsync(List<SchoolEntry> list)
+{
+    if (list.Count == 0)
+    {
+        Console.WriteLine("Inga skolor konfigurerade. Lagg till en ny:");
+        return await AddNewSchoolAsync(list);
+    }
+
+    if (list.Count == 1)
+    {
+        Console.WriteLine($"Skola: {list[0].Name} ({list[0].Slug})");
+        Console.Write("Anvand denna? (Enter = ja, 'n' = ny skola): ");
+        var confirm = Console.ReadLine()?.Trim().ToLower();
+        if (confirm is "n" or "ny" or "new")
+            return await AddNewSchoolAsync(list);
+        return list[0].Slug;
+    }
+
+    Console.WriteLine("Valj skola:");
+    for (int i = 0; i < list.Count; i++)
+        Console.WriteLine($"  {i + 1}. {list[i].Name} ({list[i].Slug})");
+    Console.WriteLine($"  {list.Count + 1}. Lagg till ny skola");
+    Console.Write("Val: ");
+
+    var input = Console.ReadLine()?.Trim();
+    if (int.TryParse(input, out var idx) && idx >= 1 && idx <= list.Count)
+        return list[idx - 1].Slug;
+    if (idx == list.Count + 1 || input?.ToLower() is "ny" or "new")
+        return await AddNewSchoolAsync(list);
+
+    // Default to first
+    Console.WriteLine($"Ogiltigt val, anvander {list[0].Name}.");
+    return list[0].Slug;
+}
+
+async Task<string> AddNewSchoolAsync(List<SchoolEntry> list)
+{
+    Console.Write("Ange skolans slug (t.ex. 'nti', 'procivitas'): ");
+    var slug = Console.ReadLine()?.Trim()?.ToLower() ?? "";
+    if (string.IsNullOrEmpty(slug))
+    {
+        Console.WriteLine("Tomt slug. Avbryter.");
+        return list.Count > 0 ? list[0].Slug : "nti";
+    }
+
+    Console.Write($"Ange skolans namn (Enter = '{slug}'): ");
+    var name = Console.ReadLine()?.Trim();
+    if (string.IsNullOrEmpty(name))
+        name = slug;
+
+    // Avoid duplicates
+    if (!list.Any(s => s.Slug.Equals(slug, StringComparison.OrdinalIgnoreCase)))
+    {
+        list.Add(new SchoolEntry { Slug = slug, Name = name });
+        await SaveSchoolsAsync(list);
+        Console.WriteLine($"Skola '{name}' ({slug}) tillagd och sparad!");
+    }
+    else
+    {
+        Console.WriteLine($"Skola '{slug}' finns redan.");
+    }
+
+    return slug;
 }
 
 // --- Hjalpfunktioner ---
@@ -634,4 +769,13 @@ static string ReadPassword()
         }
     }
     return password.ToString();
+}
+
+class SchoolEntry
+{
+    [System.Text.Json.Serialization.JsonPropertyName("slug")]
+    public string Slug { get; set; } = "";
+
+    [System.Text.Json.Serialization.JsonPropertyName("name")]
+    public string Name { get; set; } = "";
 }
